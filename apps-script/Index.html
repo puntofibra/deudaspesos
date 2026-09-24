@@ -1,0 +1,1446 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0e5a47">
+<title>DeudasPesos</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
+
+:root {
+  --bg: #f4f1ea; --surface: #ffffff; --surface2: #f7f4ec; --border: #e5dfd2;
+  --ink: #1b2a23; --text2: #6d776f; --text3: #9aa29b;
+  --pri: #0e7a5f; --pri-d: #0a5c48; --pri-dd: #083f32; --pri-l: #e3f2ec;
+  --gold: #e3a008; --gold-l: #fdf3d8;
+  --green: #0e7a5f; --red: #c2410c; --red-l: #fdece4;
+  --r: 18px; --rs: 12px;
+  --shadow: 0 1px 2px rgba(27,42,35,.06), 0 6px 18px rgba(27,42,35,.06);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { overscroll-behavior-y: none; width: 100%; min-height: 100vh; background: var(--bg); }
+body { color: var(--ink); font-family: 'Outfit', sans-serif; }
+.mono { font-family: 'JetBrains Mono', monospace; }
+
+#app { max-width: 640px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; background: var(--bg);
+  padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
+.page { display: none; flex-direction: column; min-height: 100vh; }
+.page.active { display: flex; }
+
+/* TOPBAR (banda verde) */
+.topbar { display: flex; align-items: center; gap: 6px; padding: 14px 14px; min-height: 60px;
+  background: var(--pri-dd); color: #fff; position: sticky; top: 0; z-index: 5; }
+.topbar-back { width: 38px; height: 38px; border-radius: 50%; background: rgba(255,255,255,.12); border: none; color: #fff;
+  font-size: 19px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.topbar-title { font-size: 18px; font-weight: 700; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-left: 4px; letter-spacing: -.2px; }
+.topbar-title small { font-weight: 500; color: #9fd6c3; font-size: 12px; margin-left: 4px; }
+.topbar-action { background: rgba(255,255,255,.12); border: none; color: #fff; font-family: inherit; font-size: 14px; font-weight: 600;
+  cursor: pointer; padding: 9px 13px; border-radius: 100px; white-space: nowrap; flex-shrink: 0; }
+.topbar-action.gold { background: var(--gold); color: #3b2a00; }
+
+.scroll { flex: 1; width: 100%; padding: 14px 14px 48px; display: flex; flex-direction: column; gap: 12px; }
+
+/* LOGIN */
+#pg-login { justify-content: flex-start; align-items: center; padding: 11vh 24px 40px;
+  background: linear-gradient(180deg, var(--pri-dd) 0, var(--pri-d) 38vh, var(--bg) 38vh); }
+.login-logo { width: 84px; height: 84px; border-radius: 26px; background: var(--gold); color: #3b2a00; font-size: 44px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center; margin-bottom: 16px; box-shadow: 0 10px 30px rgba(0,0,0,.25); }
+.login-title { font-size: 30px; font-weight: 800; color: #fff; letter-spacing: -.6px; }
+.login-sub { font-size: 15px; color: #bfe3d6; margin: 4px 0 30px; text-align: center; }
+.login-form { width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: 12px; background: var(--surface);
+  padding: 22px 18px; border-radius: 22px; box-shadow: var(--shadow); }
+
+input, select, textarea { width: 100%; background: var(--surface2); border: 1.5px solid var(--border); border-radius: var(--rs);
+  color: var(--ink); font-family: 'Outfit', sans-serif; font-size: 16px; padding: 14px 15px; outline: none;
+  transition: border-color .2s, background .2s; -webkit-appearance: none; appearance: none; }
+input:focus, textarea:focus { border-color: var(--pri); background: #fff; }
+input::placeholder, textarea::placeholder { color: var(--text3); }
+input:disabled { color: var(--text2); cursor: not-allowed; }
+input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+input[type=number] { -moz-appearance: textfield; }
+textarea { resize: vertical; min-height: 90px; font-size: 15px; line-height: 1.5; }
+.money-wrap { position: relative; }
+.money-wrap::before { content: '$'; position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text2); font-weight: 600; }
+.money-wrap input { padding-left: 30px; font-family: 'JetBrains Mono', monospace; font-weight: 700; }
+.pct-wrap { position: relative; }
+.pct-wrap::after { content: '% mensual'; position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: var(--text2); font-size: 14px; }
+.pct-wrap input { font-family: 'JetBrains Mono', monospace; font-weight: 700; padding-right: 96px; }
+
+.btn { width: 100%; padding: 15px; border-radius: 100px; border: none; font-family: 'Outfit', sans-serif; font-size: 16px; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; }
+.btn:active { transform: scale(.98); }
+.btn-primary { background: var(--pri); color: #fff; box-shadow: 0 6px 16px rgba(14,122,95,.25); }
+.btn-gold { background: var(--gold); color: #3b2a00; }
+.btn-secondary { background: var(--surface); color: var(--pri-d); border: 1.5px solid var(--border); }
+.btn-danger { background: var(--red-l); color: var(--red); border: 1.5px solid #f6cdb9; }
+.btn-ghost { background: transparent; color: var(--text2); font-size: 14px; padding: 11px; font-weight: 600; }
+.btn-sm { width: auto; padding: 8px 14px; font-size: 13px; }
+.btn-icon { width: 36px; height: 36px; padding: 0; }
+
+.card { background: var(--surface); border-radius: var(--r); border: 1px solid var(--border); padding: 16px; box-shadow: var(--shadow); }
+
+/* HERO DE SALDO */
+.hero { background: linear-gradient(135deg, var(--pri-d), var(--pri-dd)); color: #fff; border-radius: 22px; padding: 18px; position: relative; overflow: hidden; }
+.hero::after { content: ''; position: absolute; right: -40px; top: -40px; width: 150px; height: 150px; border-radius: 50%; background: rgba(227,160,8,.18); }
+.hero-label { font-size: 12px; text-transform: uppercase; letter-spacing: 1.2px; color: #9fd6c3; font-weight: 600; }
+.hero-balance { font-family: 'JetBrains Mono', monospace; font-size: 30px; font-weight: 700; margin: 4px 0 14px; letter-spacing: -1px; }
+.hero-row { display: flex; gap: 10px; position: relative; z-index: 1; }
+.hero-box { flex: 1; background: rgba(255,255,255,.09); border-radius: 14px; padding: 10px 12px; }
+.hero-box .v { font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 700; margin-top: 3px; }
+.hero-box .s { font-size: 11px; color: #bfe3d6; margin-top: 2px; }
+
+/* SEGMENTED + TABS */
+.segmented { display: flex; background: #e9e4d8; border-radius: 100px; padding: 4px; gap: 4px; }
+.seg { flex: 1; padding: 10px 4px; border-radius: 100px; border: none; background: transparent; color: var(--text2);
+  font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+.seg.active { background: var(--surface); color: var(--pri-d); box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+.tabs { display: flex; border-bottom: 2px solid var(--border); gap: 4px; }
+.tab { flex: 1; padding: 12px 4px 10px; border: none; background: transparent; color: var(--text2); font-family: inherit;
+  font-size: 14px; font-weight: 700; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; white-space: nowrap; }
+.tab.active { color: var(--pri-d); border-bottom-color: var(--gold); }
+.tab .cnt { display: inline-block; min-width: 18px; padding: 0 5px; border-radius: 9px; background: var(--pri-l); color: var(--pri-d); font-size: 11px; margin-left: 4px; }
+
+/* TARJETA DE DEUDA */
+.lista { display: flex; flex-direction: column; gap: 12px; }
+.deuda-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); box-shadow: var(--shadow); overflow: hidden; border-left: 5px solid var(--pri); }
+.deuda-card.debo { border-left-color: var(--red); }
+.deuda-card.hist { border-left-color: var(--text3); opacity: .85; }
+.dc-body { padding: 14px 14px 12px; }
+.dc-top { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+.dc-desc { font-size: 16px; font-weight: 700; line-height: 1.25; word-break: break-word; }
+.dc-meta { font-size: 12.5px; color: var(--text2); margin-top: 3px; }
+.dc-amount { text-align: right; flex-shrink: 0; }
+.dc-amount .v { font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 700; }
+.dc-amount .s { font-size: 11px; color: var(--text2); }
+.v-green { color: var(--green); } .v-red { color: var(--red); } .v-gray { color: var(--text2); }
+.pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.pill { font-size: 11.5px; font-weight: 700; padding: 4px 10px; border-radius: 100px; background: var(--surface2); color: var(--text2); border: 1px solid var(--border); }
+.pill.int { background: var(--gold-l); color: #8a5a00; border-color: #f3dc9c; }
+.pill.ok { background: var(--pri-l); color: var(--pri-d); border-color: #c4e6d8; }
+.desglose { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 12px; background: var(--surface2); border-radius: 12px; padding: 10px; }
+.desglose div { font-size: 10.5px; color: var(--text2); text-transform: uppercase; letter-spacing: .4px; font-weight: 600; }
+.desglose b { display: block; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--ink); margin-top: 3px; text-transform: none; letter-spacing: 0; }
+.barra { height: 6px; background: #ece7dc; border-radius: 6px; margin-top: 10px; overflow: hidden; }
+.barra > i { display: block; height: 100%; background: linear-gradient(90deg, var(--pri), #34b089); border-radius: 6px; }
+.dc-line { font-size: 12.5px; color: var(--text2); margin-top: 8px; }
+.dc-line.aviso { color: #8a5a00; }
+.dc-line.sol { color: var(--pri-d); font-weight: 600; background: var(--pri-l); padding: 8px 10px; border-radius: 10px; }
+.link { color: var(--pri); cursor: pointer; text-decoration: underline; font-weight: 700; }
+.dc-actions { display: flex; gap: 6px; padding: 10px 14px; border-top: 1px dashed var(--border); background: #fcfbf8; justify-content: flex-end; flex-wrap: wrap; }
+
+.timeline { display: none; flex-direction: column; padding: 4px 14px 12px; border-top: 1px solid var(--border); }
+.timeline.open { display: flex; }
+.tl { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid #f0ece3; font-size: 12.5px; }
+.tl:last-child { border-bottom: none; }
+.tl-dot { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
+.tl-dot.i { background: var(--gold-l); } .tl-dot.p { background: var(--pri-l); } .tl-dot.x { background: var(--red-l); } .tl-dot.c { background: var(--surface2); }
+.tl-txt { flex: 1; min-width: 0; }
+.tl-txt .t { font-weight: 700; }
+.tl-txt .d { color: var(--text2); font-size: 11.5px; margin-top: 1px; }
+.tl-amt { font-family: 'JetBrains Mono', monospace; font-weight: 700; white-space: nowrap; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { padding: 8px 14px; border-radius: 100px; font-size: 14px; font-weight: 600; background: var(--surface2); border: 1.5px solid var(--border); cursor: pointer; color: var(--text2); }
+.chip.selected { background: var(--pri); border-color: var(--pri); color: #fff; }
+
+.label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text2); }
+.row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.empty { text-align: center; padding: 44px 20px; color: var(--text2); background: var(--surface); border: 1.5px dashed var(--border); border-radius: var(--r); }
+.empty-icon { font-size: 40px; margin-bottom: 10px; }
+.empty-text { font-size: 14px; line-height: 1.5; }
+
+.usuario-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 12px 14px; display: flex; align-items: center; gap: 12px; box-shadow: var(--shadow); }
+.avatar { width: 40px; height: 40px; border-radius: 12px; background: var(--pri-l); color: var(--pri-d); display: flex; align-items: center; justify-content: center; font-size: 17px; font-weight: 800; flex-shrink: 0; }
+.badge { font-size: 11px; font-weight: 700; color: var(--text2); background: var(--surface2); border: 1px solid var(--border); border-radius: 100px; padding: 2px 9px; }
+
+/* BOTTOM SHEETS */
+.overlay { position: fixed; inset: 0; background: rgba(8,30,24,.55); z-index: 100; display: flex; align-items: flex-end; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity .2s; }
+.overlay.open { opacity: 1; pointer-events: all; }
+.sheet { width: 100%; max-width: 560px; background: var(--surface); border-radius: 24px 24px 0 0; padding: 10px 18px calc(18px + env(safe-area-inset-bottom));
+  display: flex; flex-direction: column; gap: 12px; max-height: 90vh; overflow-y: auto; transform: translateY(100%); transition: transform .28s cubic-bezier(.2,.9,.3,1); }
+.sheet::before { content: ''; width: 42px; height: 5px; border-radius: 5px; background: var(--border); align-self: center; margin-bottom: 4px; flex-shrink: 0; }
+.overlay.open .sheet { transform: translateY(0); }
+.sheet-title { font-size: 20px; font-weight: 800; letter-spacing: -.3px; }
+.sheet-sub { font-size: 13.5px; color: var(--text2); line-height: 1.45; }
+.resumen { background: var(--surface2); border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; font-size: 13.5px; display: flex; flex-direction: column; gap: 6px; }
+.resumen .r { display: flex; justify-content: space-between; gap: 10px; }
+.resumen .r span:last-child { font-family: 'JetBrains Mono', monospace; font-weight: 700; }
+.resumen .r.total { border-top: 1px dashed var(--border); padding-top: 6px; font-size: 15px; font-weight: 700; }
+.preview { background: var(--gold-l); border: 1px solid #f3dc9c; color: #6b4600; border-radius: 12px; padding: 10px 12px; font-size: 13px; line-height: 1.45; }
+.preview.verde { background: var(--pri-l); border-color: #c4e6d8; color: var(--pri-dd); }
+
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(140px); background: var(--ink); color: #fff;
+  padding: 13px 20px; border-radius: 14px; font-size: 14px; font-weight: 600; z-index: 999; transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+  width: max-content; max-width: min(90vw, 380px); text-align: center; line-height: 1.4; }
+.toast.show { transform: translateX(-50%) translateY(0); }
+.toast.ok { background: var(--pri-d); } .toast.error { background: var(--red); }
+.err { color: var(--red); font-size: 13px; text-align: center; display: none; font-weight: 600; }
+
+.loading-overlay { position: fixed; inset: 0; background: rgba(244,241,234,.6); z-index: 300; display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity .2s; }
+.loading-overlay.show { opacity: 1; pointer-events: all; }
+.coin { width: 56px; height: 56px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #ffd866, var(--gold) 60%, #b07a00);
+  display: flex; align-items: center; justify-content: center; font-weight: 800; color: #5a3d00; font-size: 26px;
+  animation: girar 1s linear infinite; box-shadow: 0 6px 20px rgba(176,122,0,.35); }
+@keyframes girar { 0% { transform: rotateY(0) } 100% { transform: rotateY(360deg) } }
+
+/* ORDENADOR / TABLET: más grande y a dos columnas */
+@media (min-width: 900px) {
+  #app { max-width: 1180px; }
+  .topbar { padding: 16px 28px; min-height: 70px; }
+  .topbar-title { font-size: 22px; }
+  .topbar-action { font-size: 15px; padding: 10px 18px; }
+  .scroll { padding: 24px 28px 64px; gap: 18px; }
+  .segmented { max-width: 440px; }
+  .seg, .tab { font-size: 16px; }
+  .hero { padding: 26px 30px; }
+  .hero-balance { font-size: 42px; }
+  .hero-box { padding: 14px 18px; }
+  .hero-box .v { font-size: 20px; }
+  .tabs { max-width: 640px; }
+  .lista { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 18px; }
+  .lista > .empty { grid-column: 1 / -1; }
+  .dc-body { padding: 18px 18px 14px; }
+  .dc-desc { font-size: 18px; }
+  .dc-meta, .dc-line { font-size: 14px; }
+  .dc-amount .v { font-size: 22px; }
+  .desglose b { font-size: 15px; }
+  .pill { font-size: 12.5px; }
+  .tl { font-size: 14px; }
+  #seccion-admin, #pg-perfil .scroll, #pg-contactos .scroll { max-width: 760px; width: 100%; margin: 0 auto; }
+  .overlay { align-items: center; }
+  .sheet { max-width: 520px; border-radius: 24px; padding: 22px 26px 24px; transform: translateY(30px) scale(.97); opacity: 0; transition: transform .25s, opacity .2s; }
+  .overlay.open .sheet { transform: none; opacity: 1; }
+  .sheet::before { display: none; }
+  .login-form { max-width: 420px; padding: 28px 26px; }
+  .login-title { font-size: 38px; }
+}
+@media (min-width: 1400px) {
+  #app { max-width: 1360px; }
+  .lista { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+<div id="app">
+
+<!-- LOGIN -->
+<div class="page active" id="pg-login">
+  <div class="login-logo">$</div>
+  <div class="login-title">DeudasPesos</div>
+  <div class="login-sub">Préstamos y deudas en pesos, con o sin interés</div>
+  <div class="login-form">
+    <input type="text" id="l-user" placeholder="Usuario o correo" autocomplete="username" autofocus>
+    <input type="password" id="l-pass" placeholder="Contraseña" autocomplete="current-password">
+    <div class="err" id="l-err"></div>
+    <button class="btn btn-primary" id="btn-entrar">Entrar</button>
+    <button class="btn btn-ghost" onclick="openSheet('sh-recuperar-pass')">¿Olvidaste tu contraseña?</button>
+  </div>
+</div>
+
+<!-- HOME -->
+<div class="page" id="pg-home">
+  <div class="topbar">
+    <div class="topbar-title">DeudasPesos <small>COP</small></div>
+    <button class="topbar-action gold" onclick="openCrearDeuda()">+ Deuda</button>
+    <button class="topbar-action" onclick="nav('pg-perfil')">☰</button>
+  </div>
+  <div class="scroll">
+    <div class="segmented">
+      <button class="seg active" id="tab-deudas-btn" onclick="switchSeccion('deudas')">Deudas</button>
+      <button class="seg" id="tab-admin-btn" onclick="switchSeccion('admin')">Usuarios</button>
+    </div>
+
+    <div id="seccion-deudas" style="display:flex;flex-direction:column;gap:12px">
+      <div class="hero">
+        <div class="hero-label">Balance total</div>
+        <div class="hero-balance" id="saldo-balance">$0</div>
+        <div class="hero-row">
+          <div class="hero-box"><div class="hero-label">Te deben</div><div class="v" id="saldo-medeben">$0</div><div class="s" id="saldo-medeben-int"></div></div>
+          <div class="hero-box"><div class="hero-label">Debes</div><div class="v" id="saldo-debo">$0</div><div class="s" id="saldo-debo-int"></div></div>
+        </div>
+      </div>
+      <div class="tabs">
+        <button class="tab active" id="tab-medeben-btn" onclick="switchTab('meDeben')">Me deben <span class="cnt" id="cnt-medeben">0</span></button>
+        <button class="tab" id="tab-debo-btn" onclick="switchTab('debo')">Debo <span class="cnt" id="cnt-debo">0</span></button>
+        <button class="tab" id="tab-historial-btn" onclick="switchTab('historial')">Historial</button>
+      </div>
+      <div id="tab-medeben-content" class="lista"></div>
+      <div id="tab-debo-content" class="lista" style="display:none"></div>
+      <div id="tab-historial-content" class="lista" style="display:none"></div>
+    </div>
+
+    <div id="seccion-admin" style="display:none;flex-direction:column;gap:10px">
+      <div id="lista-usuarios" style="display:flex;flex-direction:column;gap:10px"></div>
+      <button class="btn btn-primary" onclick="openSheet('sh-nuevo-usuario')">+ Nuevo usuario</button>
+      <button class="btn btn-secondary" onclick="openSheet('sh-agregar-usuario')">🔗 Agregar usuario existente</button>
+      <button class="btn btn-ghost" onclick="openSheet('sh-recuperar-usuario')">↺ Recuperar usuario eliminado</button>
+
+      <div id="bloque-licencias-master" class="card" style="display:none;margin-top:10px;background:var(--gold-l);border-color:#f3dc9c">
+        <div class="label" style="color:#8a5a00;margin-bottom:10px">Gestión de licencias</div>
+        <input type="text" id="lic-correo-input" placeholder="Correo del cliente que ha pagado" style="margin-bottom:8px;background:#fff">
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-primary btn-sm" style="flex:1" onclick="masterActivarLicencia('anio')">Activar 1 año</button>
+          <button class="btn btn-secondary btn-sm" style="flex:1" onclick="masterActivarLicencia('vitalicia')">Vitalicia</button>
+        </div>
+        <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:6px" onclick="masterQuitarLicencia()">Quitar licencia</button>
+        <div id="lic-master-msg" style="font-size:12.5px;margin-top:6px;min-height:16px;font-weight:600"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PERFIL -->
+<div class="page" id="pg-perfil">
+  <div class="topbar">
+    <button class="topbar-back" onclick="nav('pg-home'); cargarDeudas();">←</button>
+    <div class="topbar-title">Mi perfil</div>
+  </div>
+  <div class="scroll">
+    <div class="card">
+      <div class="row">
+        <div style="min-width:0">
+          <div class="label">Sesión iniciada</div>
+          <div style="font-size:21px;font-weight:800;margin-top:6px;overflow:hidden;text-overflow:ellipsis" id="p-nombre"></div>
+          <div style="font-size:13px;color:var(--text2);margin-top:3px;overflow:hidden;text-overflow:ellipsis" id="p-correo"></div>
+        </div>
+        <button class="btn btn-secondary btn-sm" style="flex-shrink:0" onclick="abrirEditarMiNombre()">Editar</button>
+      </div>
+      <div style="font-size:12px;color:var(--text2);margin-top:10px;line-height:1.45">Tu nombre público lo ves tú y los usuarios que hayas creado; también sirve para iniciar sesión. Quien te creó te sigue viendo con el nombre que él te puso.</div>
+    </div>
+    <div class="card"><div id="p-plan" style="font-size:13.5px"></div></div>
+    <button class="btn btn-secondary" onclick="abrirContactos()">👥 Gestionar contactos</button>
+    <div class="card" style="display:flex;flex-direction:column;gap:10px">
+      <div class="label">Cambiar contraseña</div>
+      <input type="password" id="p-actual" placeholder="Contraseña actual">
+      <input type="password" id="p-nueva" placeholder="Nueva contraseña">
+      <input type="password" id="p-confirmar" placeholder="Confirmar nueva">
+      <div class="err" id="p-err"></div>
+      <button class="btn btn-primary" onclick="doChangePass()">Guardar contraseña</button>
+    </div>
+    <button class="btn btn-danger" onclick="doLogout()">Cerrar sesión</button>
+  </div>
+</div>
+
+<!-- CONTACTOS -->
+<div class="page" id="pg-contactos">
+  <div class="topbar">
+    <button class="topbar-back" onclick="nav('pg-perfil')">←</button>
+    <div class="topbar-title">Gestionar contactos</div>
+  </div>
+  <div class="scroll">
+    <div class="sheet-sub">Si omites a alguien, no podrás elegirlo al crear una deuda nueva y él tampoco te verá a ti. Solo tú puedes recuperarlo. No se puede omitir a alguien con deudas pendientes.</div>
+    <div id="lista-contactos" style="display:flex;flex-direction:column;gap:10px"></div>
+  </div>
+</div>
+
+</div><!-- /app -->
+
+<!-- ══ MODALES ══ -->
+
+<!-- Llave NFC -->
+<div class="overlay" id="sh-llave" onclick="bgClose(event,this)">
+  <div class="sheet">
+    <div class="sheet-title">Acceso con llave</div>
+    <div class="sheet-sub">Escanea el QR con el móvil que tenga NFC y acerca tu llave. Si ya estás en ese móvil, pulsa el botón de abajo.</div>
+    <div style="display:flex;justify-content:center"><div id="llave-qr" style="background:#fff;padding:10px;border-radius:12px;border:1px solid var(--border)"></div></div>
+    <div class="mono" style="text-align:center;font-size:20px;letter-spacing:3px;color:var(--pri)" id="llave-codigo"></div>
+    <button class="btn btn-primary" onclick="abrirLectorLlave()">Estoy en este móvil, abrir lector</button>
+    <button class="btn btn-ghost" onclick="cerrarLlaveNFC()">Cancelar</button>
+    <div class="err" id="llave-err"></div>
+  </div>
+</div>
+
+<!-- Crear deuda -->
+<div class="overlay" id="sh-deuda" onclick="bgClose(event,this)">
+  <div class="sheet">
+    <div class="sheet-title">Nueva deuda</div>
+    <div class="label">¿Quién te debe?</div>
+    <div id="gd-chips" class="chips"></div>
+    <input type="text" id="gd-desc" placeholder="Descripción (ej: Préstamo moto)">
+    <div class="money-wrap"><input type="text" inputmode="numeric" class="money" id="gd-importe" placeholder="Importe prestado" oninput="gdPreview()"></div>
+    <div class="label" style="margin-top:4px">¿Le pones interés mensual?</div>
+    <div class="chips">
+      <div class="chip selected" id="gd-chip-sin" onclick="gdSetInteres(false)">Sin interés</div>
+      <div class="chip" id="gd-chip-con" onclick="gdSetInteres(true)">Con interés mensual</div>
+    </div>
+    <div id="gd-interes-box" style="display:none;flex-direction:column;gap:8px">
+      <div class="pct-wrap"><input type="number" id="gd-interes" placeholder="Ej: 5" step="0.1" min="0" max="100" inputmode="decimal" oninput="gdPreview()"></div>
+      <div class="chips" id="gd-sugeridos">
+        <div class="chip" onclick="gdPct(2)">2%</div><div class="chip" onclick="gdPct(3)">3%</div>
+        <div class="chip" onclick="gdPct(5)">5%</div><div class="chip" onclick="gdPct(10)">10%</div><div class="chip" onclick="gdPct(20)">20%</div>
+      </div>
+    </div>
+    <div class="preview" id="gd-preview" style="display:none"></div>
+    <div class="err" id="gd-err"></div>
+    <button class="btn btn-primary" onclick="doCrearDeuda()">Crear deuda</button>
+    <button class="btn btn-ghost" onclick="closeSheet('sh-deuda')">Cancelar</button>
+  </div>
+</div>
+
+<!-- Registrar pago (acreedor) -->
+<div class="overlay" id="sh-pago" onclick="bgClose(event,this)">
+  <div class="sheet">
+    <div class="sheet-title">Registrar cobro</div>
+    <div class="sheet-sub" id="pg-info"></div>
+    <div class="resumen" id="pg-resumen"></div>
+    <div class="money-wrap"><input type="text" inputmode="numeric" class="money" id="pg-monto" placeholder="Importe recibido" oninput="pgPreview()"></div>
+    <button class="btn btn-secondary btn-sm" style="width:100%" onclick="pgMarcarTotal()">Pagó todo lo pendiente</button>
+    <div class="preview verde" id="pg-preview" style="display:none"></div>
+    <div class="err" id="pg-err"></div>
+    <button class="btn btn-primary" onclick="doRegistrarPago()">Registrar cobro</button>
+    <button class="btn btn-ghost" onclick="closeSheet('sh-pago')">Cancelar</button>
+  </div>
+</div>
+
+<!-- Solicitar pago (deudor) -->
+<div class="overlay" id="sh-solicitar" onclick="bgClose(event,this)">
+  <div class="sheet">
+    <div class="sheet-title">Avisar de un pago</div>
+    <div class="sheet-sub" id="so-info"></div>
+    <div class="resumen" id="so-resumen"></div>
+    <div class="chips">
+      <div class="chip selected" id="so-chip-total" onclick="soSetTipo('total')">Pago total</div>
+      <div class="chip" id="so-chip-parcial" onclick="soSetTipo('parcial')">Pago parcial / cuota</div>
+    </div>
+    <div class="money-wrap" id="so-monto-wrap" style="display:none"><input type="text" inputmode="numeric" class="money" id="so-monto" placeholder="Importe" oninput="soPreview()"></div>
+    <div class="preview verde" id="so-preview" style="display:none"></div>
+    <div class="err" id="so-err"></div>
+    <button class="btn btn-primary" onclick="doCrearSolicitud()">Enviar aviso de pago</button>
+    <button class="btn btn-ghost" onclick="closeSheet('sh-solicitar')">Cancelar</button>
+  </div>
+</div>
+
+<!-- Confirmar aceptar pago solicitado -->
+<div class="overlay" id="sh-confirm-pago" onclick="bgClose(event,this)">
+  <div class="sheet">
+    <div class="sheet-title">Aceptar pago</div>
+    <div class="sheet-sub" id="cp-desc"></div>
+    <div class="err" id="cp-err"></div>
+    <button class="btn btn-primary" onclick="doConfirmAceptarPago()">Sí, lo he recibido</button>
+    <button class="btn btn-ghost" onclick="closeSheet('sh-confirm-pago')">Cancelar</button>
+  </div>
+</div>
+
+<!-- Nota -->
+<div class="overlay" id="sh-nota" onclick="bgClose(event,this)">
+  <div class="sheet">
+    <div class="sheet-title" id="nt-titulo">Nota</div>
+    <div class="sheet-sub" id="nt-desc"></div>
+    <textarea id="nt-texto" placeholder="Escribe una nota sobre esta deuda..." rows="5"></textarea>
+    <div id="nt-vista" style="display:none;font-size:14px;line-height:1.5;white-space:pre-wrap;background:var(--surface2);border-radius:12px;padding:12px;max-height:200px;overflow-y:auto"></div>
+    <div class="err" id="nt-err"></div>
+    <button class="btn btn-primary" id="nt-btn-guardar" onclick="doGuardarNota()">Guardar nota</button>
+    <button class="btn btn-ghost" onclick="closeSheet('sh-nota')">Cerrar</button>
+  </div>
+</div>
+
+<!-- Confirmar archivar -->
+<div class="overlay" id="sh-confirm" onclick="bgClose(event,this)">
+  <div class="sheet">
+    <div class="sheet-title">Archivar deuda</div>
+    <div class="sheet-sub" id="cf-desc"></div>
+    <div class="err" id="cf-err"></div>
+    <button class="btn btn-danger" onclick="doConfirmAccion()">Sí, archivar</button>
+    <button class="btn btn-ghost" onclick="closeSheet('sh-confirm')">Cancelar</button>
+  </div>
+</div>
+
+<!-- Nuevo usuario -->
+<div class="overlay" id="sh-nuevo-usuario" onclick="bgClose(event,this)">
+  <div class="sheet">
+    <div class="sheet-title">Nuevo usuario</div>
+    <div class="sheet-sub">Le enviaremos por correo una invitación con una contraseña de 6 dígitos que podrá cambiar desde su perfil.</div>
+    <input type="text" id="nu-nombre" placeholder="Nombre de usuario">
+    <input type="email" id="nu-correo" placeholder="Correo electrónico">
+    <div class="err" id="nu-err"></div>
+    <button class="btn btn-primary" onclick="doCrearUsuario()">Crear usuario</button>
+    <button class="btn btn-ghost" onclick="closeSheet('sh-nuevo-usuario')">Cancelar</button>
+  </div>
+</div>
+
+<!-- Editar nombre (alias) -->
+<div class="overlay" id="sh-editar-usuario" onclick="bgClose(event,this)">
+  <div class="sheet">
+    <div class="sheet-title">Editar nombre</div>
+    <div class="sheet-sub">Cambia el nombre con el que <b>tú</b> ves a este usuario. Solo lo verás tú. El correo no se puede cambiar.</div>
+    <input type="text" id="eu-nombre" placeholder="Nombre">
+    <input type="email" id="eu-correo" placeholder="Correo" disabled>
+    <div class="err" id="eu-err"></div>
+    <button class="btn btn-primary" onclick="doEditarUsuario()">Guardar nombre</button>
+    <button class="btn btn-ghost" onclick="closeSheet('sh-editar-usuario')">Cancelar</button>
+  </div>
+</div>
+
+<!-- Confirmar eliminar usuario -->
+<div class="overlay" id="sh-confirm-usuario" onclick="bgClose(event,this)">
+  <div class="sheet">
+    <div class="sheet-title">Eliminar usuario</div>
+    <div class="sheet-sub" id="cu-desc"></div>
+    <div class="err" id="cu-err"></div>
+    <button class="btn btn-danger" onclick="doConfirmEliminarUsuario()">Sí, eliminar</button>
+    <button class="btn btn-ghost" onclick="closeSheet('sh-confirm-usuario')">Cancelar</button>
+  </div>
+</div>
+
+<!-- Recuperar usuario eliminado -->
+<div class="overlay" id="sh-recuperar-usuario" onclick="bgClose(event,this)">
+  <div class="sheet">
+    <div class="sheet-title">Recuperar usuario</div>
+    <div class="sheet-sub">Escribe el correo del usuario que eliminaste para que vuelva a aparecer en tu lista.</div>
+    <input type="email" id="ru-correo" placeholder="Correo electrónico">
+    <div class="err" id="ru-err"></div>
+    <button class="btn btn-primary" onclick="doRecuperarUsuario()">Recuperar</button>
+    <button class="btn btn-ghost" onclick="closeSheet('sh-recuperar-usuario')">Cancelar</button>
+  </div>
+</div>
+
+<!-- Editar mi nombre -->
+<div class="overlay" id="sh-editar-mi-nombre" onclick="bgClose(event,this)">
+  <div class="sheet">
+    <div class="sheet-title">Editar mi nombre</div>
+    <div class="sheet-sub">Este es tu nombre público y también sirve para iniciar sesión.</div>
+    <input type="text" id="emi-nombre" placeholder="Tu nombre">
+    <div class="err" id="emi-err"></div>
+    <button class="btn btn-primary" onclick="doEditarMiNombre()">Guardar</button>
+    <button class="btn btn-ghost" onclick="closeSheet('sh-editar-mi-nombre')">Cancelar</button>
+  </div>
+</div>
+
+<!-- Recuperar contraseña -->
+<div class="overlay" id="sh-recuperar-pass" onclick="bgClose(event,this)">
+  <div class="sheet">
+    <div class="sheet-title">Recuperar contraseña</div>
+    <div class="sheet-sub">Escribe tu correo y te enviaremos una contraseña nueva que podrás cambiar después.</div>
+    <input type="email" id="rp-correo" placeholder="Correo electrónico">
+    <div class="err" id="rp-err"></div>
+    <button class="btn btn-primary" onclick="doRecuperarPass()">Enviar nueva contraseña</button>
+    <button class="btn btn-ghost" onclick="closeSheet('sh-recuperar-pass')">Cancelar</button>
+  </div>
+</div>
+
+<!-- Agregar usuario existente -->
+<div class="overlay" id="sh-agregar-usuario" onclick="bgClose(event,this)">
+  <div class="sheet">
+    <div class="sheet-title">Agregar usuario existente</div>
+    <div class="sheet-sub">Escribe el correo de un usuario que ya existe. Quedarán vinculados y podrán verse aunque ninguno haya creado al otro.</div>
+    <input type="email" id="au-correo" placeholder="Correo electrónico">
+    <div class="err" id="au-err"></div>
+    <button class="btn btn-primary" onclick="doAgregarUsuario()">Agregar</button>
+    <button class="btn btn-ghost" onclick="closeSheet('sh-agregar-usuario')">Cancelar</button>
+  </div>
+</div>
+
+<!-- Licencia -->
+<div class="overlay" id="sh-licencia" onclick="bgClose(event,this)">
+  <div class="sheet">
+    <div class="sheet-title" style="text-align:center">Hazte Premium ✨</div>
+    <div class="sheet-sub" style="text-align:center">La app sigue siendo <b>gratis para siempre</b>: puedes <b>recibir deudas sin límite</b> y usarla con normalidad.</div>
+    <div class="preview">
+      <div style="margin-bottom:6px">🎁 <b>Gratis:</b> 10 deudas creadas de regalo. Después, <b>2 deudas al mes</b> (se renueva cada día 1).</div>
+      <div>🚀 <b>Premium:</b> crea <b>deudas ilimitadas durante 1 año</b>.</div>
+    </div>
+    <div style="text-align:center"><span class="mono" style="font-size:32px;font-weight:700" id="lic-precio"></span><span style="font-size:13px;color:var(--text2)"> / año</span><div id="lic-nota" style="font-size:12px;color:var(--text2);margin-top:2px"></div></div>
+    <a id="lic-enlace" href="#" target="_blank" rel="noopener" class="btn btn-gold">Pagar y activar 1 año</a>
+    <div class="resumen" style="font-size:12.5px;line-height:1.5"><div><b style="color:#8a5a00">⚠️ Importante:</b> al pagar, escribe en el <b>concepto</b> tu correo <span id="lic-mi-correo" style="font-weight:700"></span> (el que usas en la app). En cuanto verifiquemos el cobro activaremos tu licencia y verás la fecha de caducidad en tu perfil.</div></div>
+    <button class="btn btn-ghost" onclick="closeSheet('sh-licencia')">Ahora no</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="loading-overlay" id="loading-overlay"><div class="coin">$</div></div>
+
+<script>
+// ══════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════
+const LIC_PRECIO_TEXTO = '$10.000 COP';
+const LIC_PRECIO_NOTA = '≈ 2,20 € · tu banco lo convierte a pesos al pagar';
+// Enlace de myPOS (cobra en euros). Si está vacío, el botón queda desactivado.
+const LIC_ENLACE_PAGO = 'https://mypos.com/@futurmovil/2.20';
+
+// ══════════════════════════════════════════
+// ESTADO
+// ══════════════════════════════════════════
+let session = null;
+let pendingAccion = null;
+let seccionActiva = 'deudas';
+let tabActivo = 'meDeben';
+
+// ══════════════════════════════════════════
+// NAVEGACIÓN / MODALES / TOAST
+// ══════════════════════════════════════════
+function nav(targetId) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(targetId).classList.add('active');
+  window.scrollTo(0, 0);
+  if (targetId === 'pg-perfil') { try { cargarPlanPerfil(); } catch (e) {} }
+}
+function openSheet(id) { document.getElementById(id).classList.add('open'); }
+function closeSheet(id) { document.getElementById(id).classList.remove('open'); }
+function bgClose(e, el) { if (e.target === el) el.classList.remove('open'); }
+
+function toast(msg, tipo) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast' + (tipo ? ' ' + tipo : '');
+  requestAnimationFrame(() => t.classList.add('show'));
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ══════════════════════════════════════════
+// API
+// ══════════════════════════════════════════
+let cargasActivas = 0;
+function mostrarCargando() { cargasActivas++; document.getElementById('loading-overlay').classList.add('show'); }
+function ocultarCargando() { cargasActivas = Math.max(0, cargasActivas - 1); if (!cargasActivas) document.getElementById('loading-overlay').classList.remove('show'); }
+async function api(accion, params) {
+  mostrarCargando();
+  try {
+    return await new Promise((res, rej) => {
+      google.script.run.withSuccessHandler(res).withFailureHandler(rej).ejecutar(accion, params || {});
+    });
+  } finally { ocultarCargando(); }
+}
+function showErr(id, msg) { const el = document.getElementById(id); el.textContent = msg; el.style.display = 'block'; }
+function hideErr(id) { document.getElementById(id).style.display = 'none'; }
+
+// ══════════════════════════════════════════
+// UTILS (pesos colombianos)
+// ══════════════════════════════════════════
+function esc(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function miles(n) { return String(Math.abs(Math.round(Number(n) || 0))).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
+function cop(n) { const v = Math.round(Number(n) || 0); return (v < 0 ? '-' : '') + '$' + miles(v); }
+function parsePesos(s) { const d = String(s || '').replace(/\D/g, ''); return d ? parseInt(d, 10) : 0; }
+function fmtPct(p) { return String(Math.round(Number(p) * 100) / 100).replace('.', ',') + '%'; }
+function fmtFecha(iso) {
+  try { const d = new Date(iso); if (isNaN(d)) return ''; return d.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' }); }
+  catch (e) { return ''; }
+}
+// Formatea los campos de dinero mientras se escribe: 1500000 -> 1.500.000
+document.addEventListener('input', function (e) {
+  if (!e.target.classList || !e.target.classList.contains('money')) return;
+  const n = parsePesos(e.target.value);
+  e.target.value = n ? miles(n) : '';
+}, true);
+
+// ══════════════════════════════════════════
+// LOGIN
+// ══════════════════════════════════════════
+function mostrarAccesoDenegado() {
+  hideErr('l-err'); showErr('l-err', 'Acceso denegado');
+  setTimeout(() => hideErr('l-err'), 1000);
+  setTimeout(() => showErr('l-err', 'Acceso denegado'), 1500);
+  setTimeout(() => hideErr('l-err'), 2500);
+}
+function doLoginLlave() {
+  const u = document.getElementById('l-user').value.trim();
+  const p = document.getElementById('l-pass').value.trim();
+  if (!u && !p) abrirLlaveNFC();
+}
+function iniciarSesion(r) {
+  session = { id: r.id, usuario: r.usuario, correo: r.correo || '', esMaster: !!r.esMaster };
+  actualizarVisibilidadLicencias();
+  document.getElementById('p-nombre').textContent = session.usuario;
+  document.getElementById('p-correo').textContent = session.correo || '';
+  document.getElementById('l-user').value = '';
+  document.getElementById('l-pass').value = '';
+  switchSeccion('deudas', true);
+  switchTab('meDeben', true);
+}
+async function doLogin() {
+  const u = document.getElementById('l-user').value.trim();
+  const p = document.getElementById('l-pass').value.trim();
+  hideErr('l-err');
+  if (!u && !p) return;
+  if (!u || !p) { showErr('l-err', 'Rellena todos los campos'); return; }
+  try {
+    const res = await api('login', { usuario: u, contrasena: p });
+    if (res.ok) { iniciarSesion(res); await cargarDeudas(); nav('pg-home'); }
+    else showErr('l-err', 'Usuario o contraseña incorrectos');
+  } catch (e) { showErr('l-err', 'Error de conexión'); }
+}
+function doLogout() {
+  session = null; pendingAccion = null;
+  nav('pg-login');
+  const u = document.getElementById('l-user'); if (u) u.focus();
+  setTimeout(llaveAsegurarPre, 300);
+}
+
+// Doble toque en "Entrar" con los campos vacíos = acceso con llave NFC
+(function () {
+  const btn = document.getElementById('btn-entrar');
+  let lastTap = 0, tapTimer = null;
+  const DBL_MS = 400;
+  btn.addEventListener('click', function (e) {
+    e.preventDefault();
+    const now = Date.now();
+    if (lastTap && now - lastTap < DBL_MS) {
+      clearTimeout(tapTimer); lastTap = 0; doLoginLlave();
+    } else {
+      lastTap = now;
+      tapTimer = setTimeout(function () {
+        const uu = document.getElementById('l-user').value.trim();
+        const pp = document.getElementById('l-pass').value.trim();
+        if (!uu && !pp) mostrarAccesoDenegado(); else doLogin();
+      }, DBL_MS);
+    }
+  });
+})();
+
+// ══════ ACCESO CON LLAVE NFC ══════
+let llaveCodigo = null, llaveUrl = null, llaveTimer = null, llaveVentana = null;
+let llavePre = null, llavePreT = 0, llavePreCurso = false, llaveEsperaPre = false;
+const LLAVE_PRE_VIDA = 240000;
+
+function llavePrecargar() {
+  if (llavePreCurso) return;
+  llavePreCurso = true;
+  google.script.run
+    .withSuccessHandler(function (r) {
+      llavePreCurso = false;
+      if (r && r.ok) { llavePre = r; llavePreT = Date.now(); }
+      if (llaveEsperaPre) {
+        llaveEsperaPre = false;
+        if (r && r.ok) { const d = llavePre; llavePre = null; llavePintar(d); }
+        else showErr('llave-err', (r && r.error) || 'No se pudo conectar con la central');
+      }
+    })
+    .withFailureHandler(function (e) {
+      llavePreCurso = false;
+      if (llaveEsperaPre) { llaveEsperaPre = false; showErr('llave-err', 'Error al conectar: ' + ((e && e.message) || e)); }
+    })
+    .llavePedirSesion();
+}
+function llaveAsegurarPre() {
+  if (session || llavePreCurso) return;
+  if (llavePre && (Date.now() - llavePreT) < LLAVE_PRE_VIDA) return;
+  llavePrecargar();
+}
+function llavePintar(r) {
+  llaveCodigo = r.codigo; llaveUrl = r.url;
+  hideErr('llave-err');
+  document.getElementById('llave-codigo').textContent = r.codigo;
+  const cont = document.getElementById('llave-qr');
+  cont.innerHTML = '';
+  if (typeof QRCode !== 'undefined') new QRCode(cont, { text: r.url, width: 200, height: 200, colorDark: '#083f32', colorLight: '#ffffff' });
+  if (llaveTimer) clearInterval(llaveTimer);
+  llaveTimer = setInterval(sondearLlave, 1500);
+  const suyo = r.codigo;
+  setTimeout(function () { if (llaveTimer && llaveCodigo === suyo) cerrarLlaveNFC(); }, 240000);
+}
+function abrirLlaveNFC() {
+  document.getElementById('llave-qr').innerHTML = '';
+  document.getElementById('llave-codigo').textContent = '......';
+  hideErr('llave-err');
+  openSheet('sh-llave');
+  if (llavePre && (Date.now() - llavePreT) < LLAVE_PRE_VIDA) { const d = llavePre; llavePre = null; llavePintar(d); return; }
+  llavePre = null; llaveEsperaPre = true; llavePrecargar();
+}
+function abrirLectorLlave() { if (!llaveUrl) return; cerrarVentanaLlave(); llaveVentana = window.open(llaveUrl, 'lectorLlave'); }
+function cerrarVentanaLlave() { try { if (llaveVentana && !llaveVentana.closed) llaveVentana.close(); } catch (e) {} llaveVentana = null; }
+function cerrarLlaveNFC() {
+  if (llaveTimer) { clearInterval(llaveTimer); llaveTimer = null; }
+  cerrarVentanaLlave();
+  llaveCodigo = null; llaveUrl = null; llaveEsperaPre = false;
+  closeSheet('sh-llave');
+  setTimeout(llaveAsegurarPre, 400);
+}
+function sondearLlave() {
+  if (!llaveCodigo) return;
+  google.script.run
+    .withSuccessHandler(function (res) {
+      if (res.estado === 'esperando') return;
+      if (res.estado === 'ok') {
+        clearInterval(llaveTimer); llaveTimer = null;
+        iniciarSesion(res.usuario);
+        cerrarLlaveNFC();
+        cargarDeudas().then(() => nav('pg-home'));
+        return;
+      }
+      clearInterval(llaveTimer); llaveTimer = null;
+      cerrarVentanaLlave();
+      showErr('llave-err', res.motivo || 'Llave no autorizada');
+    })
+    .withFailureHandler(function () {})
+    .llaveComprobar(llaveCodigo);
+}
+
+document.getElementById('l-user').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('l-pass').focus(); } });
+document.getElementById('l-pass').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); doLogin(); } });
+window.addEventListener('load', () => {
+  const u = document.getElementById('l-user'); if (u) u.focus();
+  setTimeout(llaveAsegurarPre, 150);
+});
+document.addEventListener('visibilitychange', function () { if (!document.hidden) llaveAsegurarPre(); });
+['pointerdown', 'keydown'].forEach(function (ev) { document.getElementById('pg-login').addEventListener(ev, llaveAsegurarPre); });
+
+// ══════════════════════════════════════════
+// SECCIONES / TABS
+// ══════════════════════════════════════════
+function actualizarVisibilidadLicencias() {
+  document.getElementById('bloque-licencias-master').style.display = (session && session.esMaster) ? 'block' : 'none';
+}
+function switchSeccion(sec, sinCargar) {
+  seccionActiva = sec;
+  document.getElementById('tab-deudas-btn').classList.toggle('active', sec === 'deudas');
+  document.getElementById('tab-admin-btn').classList.toggle('active', sec === 'admin');
+  document.getElementById('seccion-deudas').style.display = sec === 'deudas' ? 'flex' : 'none';
+  document.getElementById('seccion-admin').style.display = sec === 'admin' ? 'flex' : 'none';
+  if (sec === 'admin' && !sinCargar) { cargarUsuarios(); actualizarVisibilidadLicencias(); }
+}
+function switchTab(tab, sinCargar) {
+  tabActivo = tab;
+  document.getElementById('tab-medeben-btn').classList.toggle('active', tab === 'meDeben');
+  document.getElementById('tab-debo-btn').classList.toggle('active', tab === 'debo');
+  document.getElementById('tab-historial-btn').classList.toggle('active', tab === 'historial');
+  document.getElementById('tab-medeben-content').style.display = tab === 'meDeben' ? '' : 'none';
+  document.getElementById('tab-debo-content').style.display = tab === 'debo' ? '' : 'none';
+  document.getElementById('tab-historial-content').style.display = tab === 'historial' ? '' : 'none';
+  if (sinCargar) return;
+  if (tab === 'historial') cargarHistorial(); else cargarDeudas();
+}
+
+// ══════════════════════════════════════════
+// DEUDAS
+// ══════════════════════════════════════════
+let deudasCache = {};
+
+function htmlTimeline(d, cardId) {
+  const items = [];
+  items.push({ f: d.fecha, h: `<div class="tl"><div class="tl-dot c">🤝</div><div class="tl-txt"><div class="t">Préstamo inicial</div><div class="d">${fmtFecha(d.fecha)}${d.tasa > 0 ? ' · ' + fmtPct(d.tasa) + ' mensual' : ' · sin interés'}</div></div><div class="tl-amt">${cop(d.importe)}</div></div>` });
+  (d.movimientos || []).forEach(m => {
+    if (m.tipo === 'interes') {
+      items.push({ f: m.fecha, h: `<div class="tl"><div class="tl-dot i">📈</div><div class="tl-txt"><div class="t">Interés mes ${m.mes}</div><div class="d">${fmtFecha(m.fecha)} · ${fmtPct(d.tasa)} de ${cop(m.sobre)}</div></div><div class="tl-amt" style="color:#8a5a00">+${cop(m.monto)}</div></div>` });
+    } else {
+      const partes = [];
+      if (m.aInteres > 0) partes.push(cop(m.aInteres) + ' a intereses');
+      if (m.aCapital > 0) partes.push(cop(m.aCapital) + ' a capital');
+      items.push({ f: m.fecha, h: `<div class="tl"><div class="tl-dot p">✅</div><div class="tl-txt"><div class="t">Pago</div><div class="d">${fmtFecha(m.fecha)}${partes.length ? ' · ' + partes.join(' + ') : ''}</div></div><div class="tl-amt v-green">-${cop(m.monto)}</div></div>` });
+    }
+  });
+  (d.rechazos || []).forEach(r => {
+    items.push({ f: r.fecha, h: `<div class="tl"><div class="tl-dot x">✖️</div><div class="tl-txt"><div class="t">${r.estado === 'cancelada' ? 'Aviso cancelado' : 'Pago rechazado'}</div><div class="d">${fmtFecha(r.fecha)} · no cuenta</div></div><div class="tl-amt v-gray" style="text-decoration:line-through">${cop(r.monto)}</div></div>` });
+  });
+  items.sort((a, b) => new Date(a.f) - new Date(b.f));
+  return `<div class="timeline" id="${cardId}">${items.map(i => i.h).join('')}</div>`;
+}
+
+function htmlDeuda(d, rol, idx) {
+  const cardId = rol + '-' + idx;
+  deudasCache[d.id] = d;
+  const conInteres = d.tasa > 0;
+  const quien = rol === 'md' ? `${esc(d.deudor)} te debe` : `Le debes a ${esc(d.acreedor)}`;
+  const color = rol === 'md' ? 'v-green' : 'v-red';
+  const totalConInt = d.importe + d.interesGenerado;
+  const pctPagado = totalConInt > 0 ? Math.min(100, Math.round(d.pagado / totalConInt * 100)) : 0;
+  const nMov = (d.movimientos ? d.movimientos.length : 0) + (d.rechazos ? d.rechazos.length : 0);
+
+  let pills = conInteres ? `<span class="pill int">📈 ${fmtPct(d.tasa)} mensual</span>` : `<span class="pill">Sin interés</span>`;
+  if (conInteres && d.mesesCumplidos > 0) pills += `<span class="pill">${d.mesesCumplidos} ${d.mesesCumplidos === 1 ? 'mes' : 'meses'}</span>`;
+  if (d.pagado > 0) pills += `<span class="pill ok">Pagado ${cop(d.pagado)}</span>`;
+
+  const desglose = conInteres ? `
+    <div class="desglose">
+      <div>Capital<b>${cop(d.capitalPendiente)}</b></div>
+      <div>Intereses<b style="color:#8a5a00">${cop(d.interesPendiente)}</b></div>
+      <div>Int. generado<b>${cop(d.interesGenerado)}</b></div>
+    </div>` : '';
+  const proximo = (conInteres && d.proximoCorte)
+    ? `<div class="dc-line aviso">⏰ El ${fmtFecha(d.proximoCorte)} se suman <b>${cop(d.interesProximo)}</b> de interés si no se abona antes.</div>` : '';
+
+  let sol = '';
+  if (d.solicitud) {
+    const txt = d.solicitud.tipo === 'total' ? 'pago total' : 'pago parcial de ' + cop(d.solicitud.monto);
+    sol = rol === 'md'
+      ? `<div class="dc-line sol">🔔 Dice que te ha hecho un ${txt}. <span class="link" onclick="abrirConfirmarAceptar('${esc(d.id)}')">Aceptar</span> · <span class="link" onclick="doResponderSolicitud('${esc(d.solicitud.id)}', false)">Rechazar</span></div>`
+      : `<div class="dc-line sol">⏳ Aviso enviado: ${txt}. Esperando confirmación · <span class="link" onclick="doResponderSolicitud('${esc(d.solicitud.id)}', false)">Cancelar</span></div>`;
+  }
+
+  const acciones = rol === 'md'
+    ? `<button class="btn btn-primary btn-sm" onclick="abrirPago('${esc(d.id)}')">Cobrar</button>
+       <button class="btn btn-secondary btn-sm btn-icon" title="Nota" onclick="abrirNota('${esc(d.id)}')">${d.nota ? '📝' : '🗒️'}</button>
+       <button class="btn btn-danger btn-sm btn-icon" title="Archivar" onclick="pedirEliminarDeuda('${esc(d.id)}')">📦</button>`
+    : `<button class="btn btn-secondary btn-sm btn-icon" title="Ver nota" onclick="abrirNota('${esc(d.id)}')">${d.nota ? '📝' : '🗒️'}</button>
+       ${d.solicitud ? '' : `<button class="btn btn-primary btn-sm" onclick="abrirSolicitarPago('${esc(d.id)}')">Ya pagué</button>`}`;
+
+  return `
+  <div class="deuda-card ${rol === 'db' ? 'debo' : ''}">
+    <div class="dc-body">
+      <div class="dc-top">
+        <div style="min-width:0">
+          <div class="dc-desc">${esc(d.descripcion)}</div>
+          <div class="dc-meta">${quien} · desde ${fmtFecha(d.fecha)}</div>
+        </div>
+        <div class="dc-amount"><div class="v ${color}">${cop(d.restante)}</div><div class="s">de ${cop(d.importe)} prestados</div></div>
+      </div>
+      <div class="pills">${pills}</div>
+      ${desglose}
+      <div class="barra"><i style="width:${pctPagado}%"></i></div>
+      ${proximo}
+      ${sol}
+      <div class="dc-line"><span class="link" onclick="togglePagos('${cardId}')">Ver movimientos (${nMov + 1})</span></div>
+    </div>
+    ${htmlTimeline(d, cardId)}
+    <div class="dc-actions">${acciones}</div>
+  </div>`;
+}
+
+async function cargarDeudas() {
+  if (!session) return;
+  try {
+    const res = await api('listarDeudas', { id: session.id });
+    deudasCache = {};
+    const sum = (arr, k) => arr.reduce((a, d) => a + (d[k] || 0), 0);
+    const totalMeDeben = sum(res.meDeben, 'restante');
+    const totalDebo = sum(res.debo, 'restante');
+    const intMeDeben = sum(res.meDeben, 'interesPendiente');
+    const intDebo = sum(res.debo, 'interesPendiente');
+    const balance = totalMeDeben - totalDebo;
+    document.getElementById('saldo-medeben').textContent = cop(totalMeDeben);
+    document.getElementById('saldo-debo').textContent = cop(totalDebo);
+    document.getElementById('saldo-medeben-int').textContent = intMeDeben > 0 ? 'incl. ' + cop(intMeDeben) + ' de intereses' : '';
+    document.getElementById('saldo-debo-int').textContent = intDebo > 0 ? 'incl. ' + cop(intDebo) + ' de intereses' : '';
+    document.getElementById('saldo-balance').textContent = (balance > 0 ? '+' : '') + cop(balance);
+    document.getElementById('cnt-medeben').textContent = res.meDeben.length;
+    document.getElementById('cnt-debo').textContent = res.debo.length;
+
+    document.getElementById('tab-medeben-content').innerHTML = res.meDeben.length
+      ? res.meDeben.map((d, i) => htmlDeuda(d, 'md', i)).join('')
+      : `<div class="empty"><div class="empty-icon">🌿</div><div class="empty-text">Nadie te debe nada por ahora.<br>Pulsa <b>+ Deuda</b> para apuntar un préstamo.</div></div>`;
+    document.getElementById('tab-debo-content').innerHTML = res.debo.length
+      ? res.debo.map((d, i) => htmlDeuda(d, 'db', i)).join('')
+      : `<div class="empty"><div class="empty-icon">🎉</div><div class="empty-text">No le debes nada a nadie.</div></div>`;
+  } catch (e) { toast('Error cargando deudas', 'error'); }
+}
+
+function togglePagos(cardId) { document.getElementById(cardId).classList.toggle('open'); }
+
+async function cargarHistorial() {
+  try {
+    const historial = await api('listarHistorial', { id: session.id });
+    const el = document.getElementById('tab-historial-content');
+    if (!historial.length) { el.innerHTML = `<div class="empty"><div class="empty-icon">📜</div><div class="empty-text">Aún no hay deudas saldadas ni archivadas.</div></div>`; return; }
+    el.innerHTML = historial.map((d, idx) => {
+      const cardId = 'hi-' + idx;
+      const esAcreedor = d.rol === 'acreedor';
+      const meta = esAcreedor ? `${esc(d.deudor)} te debía` : `Le debías a ${esc(d.acreedor)}`;
+      const archivada = d.estado === 'archivada';
+      let pills = archivada ? `<span class="pill">📦 Archivada ${fmtFecha(d.fechaPago)}</span>` : `<span class="pill ok">✓ Saldada ${fmtFecha(d.fechaPago)}</span>`;
+      pills += d.tasa > 0 ? `<span class="pill int">${fmtPct(d.tasa)} mensual</span>` : `<span class="pill">Sin interés</span>`;
+      const desglose = `
+        <div class="desglose">
+          <div>Prestado<b>${cop(d.importe)}</b></div>
+          <div>Intereses<b style="color:#8a5a00">${cop(d.interesGenerado)}</b></div>
+          <div>Total pagado<b class="v-green">${cop(d.pagado)}</b></div>
+        </div>`;
+      const quedo = archivada && d.restante > 0 ? `<div class="dc-line aviso">Quedaron sin pagar ${cop(d.restante)} al archivarla.</div>` : '';
+      const nMov = (d.movimientos ? d.movimientos.length : 0);
+      return `
+        <div class="deuda-card hist">
+          <div class="dc-body">
+            <div class="dc-top">
+              <div style="min-width:0"><div class="dc-desc">${esc(d.descripcion)}</div><div class="dc-meta">${meta} · desde ${fmtFecha(d.fecha)}</div></div>
+              <div class="dc-amount"><div class="v v-gray">${cop(d.pagado)}</div><div class="s">pagado en total</div></div>
+            </div>
+            <div class="pills">${pills}</div>
+            ${desglose}${quedo}
+            <div class="dc-line"><span class="link" onclick="togglePagos('${cardId}')">Ver movimientos (${nMov + 1})</span></div>
+          </div>
+          ${htmlTimeline(d, cardId)}
+        </div>`;
+    }).join('');
+  } catch (e) { toast('Error cargando historial', 'error'); }
+}
+
+// ── Crear deuda ──
+let gdConInteres = false;
+async function openCrearDeuda() {
+  try {
+    const candidatos = await api('listarUsuariosParaDeuda', { id: session.id });
+    if (!candidatos.length) { toast('No tienes contactos. Crea o agrega un usuario primero.', 'error'); return; }
+    document.getElementById('gd-chips').innerHTML = candidatos.map((u, i) =>
+      `<div class="chip ${i === 0 ? 'selected' : ''}" data-user="${esc(u.id)}" onclick="selectUnicoChip(this)">${esc(u.usuario)}</div>`).join('');
+    document.getElementById('gd-desc').value = '';
+    document.getElementById('gd-importe').value = '';
+    document.getElementById('gd-interes').value = '';
+    gdSetInteres(false);
+    hideErr('gd-err');
+    openSheet('sh-deuda');
+  } catch (e) { toast('Error cargando usuarios', 'error'); }
+}
+function selectUnicoChip(el) {
+  el.parentElement.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+function gdSetInteres(con) {
+  gdConInteres = con;
+  document.getElementById('gd-chip-sin').classList.toggle('selected', !con);
+  document.getElementById('gd-chip-con').classList.toggle('selected', con);
+  document.getElementById('gd-interes-box').style.display = con ? 'flex' : 'none';
+  if (con) setTimeout(() => document.getElementById('gd-interes').focus(), 50);
+  gdPreview();
+}
+function gdPct(p) { document.getElementById('gd-interes').value = p; gdPreview(); }
+function gdPreview() {
+  const box = document.getElementById('gd-preview');
+  const imp = parsePesos(document.getElementById('gd-importe').value);
+  const pct = parseFloat(String(document.getElementById('gd-interes').value).replace(',', '.')) || 0;
+  document.querySelectorAll('#gd-sugeridos .chip').forEach(c => c.classList.toggle('selected', parseFloat(c.textContent) === pct));
+  if (!gdConInteres || !imp || pct <= 0) { box.style.display = 'none'; return; }
+  const cuota = Math.round(imp * pct / 100);
+  box.innerHTML = `Cada mes cumplido sin abonar se suman <b>${cop(cuota)}</b> (${fmtPct(pct)} de ${cop(imp)}).<br>` +
+    `Si no paga nada, a los 3 meses debería <b>${cop(imp + cuota * 3)}</b>. Los pagos cubren primero los intereses y luego el capital.`;
+  box.style.display = 'block';
+}
+async function doCrearDeuda() {
+  const deudorEl = document.querySelector('#gd-chips .chip.selected');
+  const desc = document.getElementById('gd-desc').value.trim();
+  const importe = parsePesos(document.getElementById('gd-importe').value);
+  let interes = 0;
+  hideErr('gd-err');
+  if (!deudorEl) { showErr('gd-err', 'Selecciona quién te debe'); return; }
+  if (!desc) { showErr('gd-err', 'Añade una descripción'); return; }
+  if (!importe || importe <= 0) { showErr('gd-err', 'Importe no válido'); return; }
+  if (gdConInteres) {
+    interes = parseFloat(String(document.getElementById('gd-interes').value).replace(',', '.'));
+    if (!interes || interes <= 0 || interes > 100) { showErr('gd-err', 'Pon un interés mensual entre 0,1% y 100%'); return; }
+  }
+  try {
+    const res = await api('crearDeuda', { acreedorId: session.id, deudorId: deudorEl.dataset.user, descripcion: desc, importe: importe, interesMensual: interes });
+    if (res.ok) {
+      closeSheet('sh-deuda');
+      toast('Deuda creada ✓', 'ok');
+      switchTab('meDeben');
+    } else {
+      if (res.limite) { closeSheet('sh-deuda'); abrirCartelLicencia(); return; }
+      showErr('gd-err', res.msg || 'Error');
+    }
+  } catch (e) { showErr('gd-err', 'Error al guardar'); }
+}
+
+// ── Resumen y reparto de un pago (primero intereses, luego capital) ──
+function htmlResumen(d) {
+  if (d.tasa > 0) {
+    return `<div class="r"><span>Capital pendiente</span><span>${cop(d.capitalPendiente)}</span></div>
+            <div class="r"><span>Intereses pendientes</span><span style="color:#8a5a00">${cop(d.interesPendiente)}</span></div>
+            <div class="r total"><span>Total a hoy</span><span>${cop(d.restante)}</span></div>`;
+  }
+  return `<div class="r total" style="border:none;padding:0"><span>Pendiente</span><span>${cop(d.restante)}</span></div>`;
+}
+function textoReparto(d, monto) {
+  if (!monto) return '';
+  if (monto > d.restante) return `⚠️ Supera lo pendiente (${cop(d.restante)}).`;
+  const aInt = Math.min(monto, d.interesPendiente);
+  const aCap = monto - aInt;
+  const queda = d.restante - monto;
+  let t = '';
+  if (d.tasa > 0) t += `Se aplican <b>${cop(aInt)}</b> a intereses y <b>${cop(aCap)}</b> a capital.<br>`;
+  if (queda <= 0) t += '✅ Con este pago la deuda queda <b>saldada</b>.';
+  else {
+    t += `Quedará pendiente <b>${cop(queda)}</b>.`;
+    if (d.tasa > 0) {
+      const capTras = d.capitalPendiente - aCap;
+      t += ` El próximo interés sería de ${cop(Math.round(capTras * d.tasa / 100))}.`;
+    }
+  }
+  return t;
+}
+
+// ── Cobrar (acreedor) ──
+let pagoActual = null, pagoTotal = false;
+function abrirPago(id) {
+  const d = deudasCache[id]; if (!d) return;
+  pagoActual = d; pagoTotal = false;
+  document.getElementById('pg-info').textContent = `"${d.descripcion}" · ${d.deudor}`;
+  document.getElementById('pg-resumen').innerHTML = htmlResumen(d);
+  document.getElementById('pg-monto').value = '';
+  pgPreview();
+  hideErr('pg-err');
+  openSheet('sh-pago');
+}
+function pgMarcarTotal() {
+  if (!pagoActual) return;
+  document.getElementById('pg-monto').value = miles(pagoActual.restante);
+  pgPreview(); pagoTotal = true;
+}
+function pgPreview() {
+  pagoTotal = false;
+  const box = document.getElementById('pg-preview');
+  const m = parsePesos(document.getElementById('pg-monto').value);
+  const t = pagoActual ? textoReparto(pagoActual, m) : '';
+  box.innerHTML = t; box.style.display = t ? 'block' : 'none';
+}
+async function doRegistrarPago() {
+  const monto = parsePesos(document.getElementById('pg-monto').value);
+  hideErr('pg-err');
+  if (!monto || monto <= 0) { showErr('pg-err', 'Introduce un importe válido'); return; }
+  const esTotal = pagoTotal || monto === pagoActual.restante;
+  try {
+    const res = await api('registrarPago', { idDeuda: pagoActual.id, monto: monto, total: esTotal, id: session.id });
+    if (res.ok) {
+      closeSheet('sh-pago');
+      toast(res.completado ? 'Deuda saldada por completo ✓' : `Cobro de ${cop(res.monto)} registrado ✓`, 'ok');
+      pagoActual = null;
+      await cargarDeudas();
+    } else showErr('pg-err', res.msg || 'Error');
+  } catch (e) { showErr('pg-err', 'Error de conexión'); }
+}
+
+// ── Avisar de un pago (deudor) ──
+let solicitudActual = null, soTipo = 'total';
+function abrirSolicitarPago(id) {
+  const d = deudasCache[id]; if (!d) return;
+  solicitudActual = d;
+  document.getElementById('so-info').textContent = `"${d.descripcion}" · a ${d.acreedor}. Tendrá que confirmar que lo ha recibido.`;
+  document.getElementById('so-resumen').innerHTML = htmlResumen(d);
+  document.getElementById('so-monto').value = '';
+  soSetTipo('total');
+  hideErr('so-err');
+  openSheet('sh-solicitar');
+}
+function soSetTipo(tipo) {
+  soTipo = tipo;
+  document.getElementById('so-chip-total').classList.toggle('selected', tipo === 'total');
+  document.getElementById('so-chip-parcial').classList.toggle('selected', tipo === 'parcial');
+  document.getElementById('so-monto-wrap').style.display = tipo === 'parcial' ? 'block' : 'none';
+  soPreview();
+}
+function soPreview() {
+  const box = document.getElementById('so-preview');
+  if (!solicitudActual) return;
+  const m = soTipo === 'total' ? solicitudActual.restante : parsePesos(document.getElementById('so-monto').value);
+  let t = textoReparto(solicitudActual, m);
+  if (soTipo === 'total' && solicitudActual.tasa > 0) t += '<br><small>Si se cumple otro mes antes de que lo confirme, el total incluirá ese interés.</small>';
+  box.innerHTML = t; box.style.display = t ? 'block' : 'none';
+}
+async function doCrearSolicitud() {
+  hideErr('so-err');
+  if (!solicitudActual) return;
+  const params = { idDeuda: solicitudActual.id, tipo: soTipo, id: session.id };
+  if (soTipo === 'parcial') {
+    const monto = parsePesos(document.getElementById('so-monto').value);
+    if (!monto || monto <= 0) { showErr('so-err', 'Introduce un importe válido'); return; }
+    params.monto = monto;
+  }
+  try {
+    const res = await api('crearSolicitudPago', params);
+    if (res.ok) { closeSheet('sh-solicitar'); toast('Aviso de pago enviado ✓', 'ok'); solicitudActual = null; await cargarDeudas(); }
+    else showErr('so-err', res.msg || 'Error');
+  } catch (e) { showErr('so-err', 'Error de conexión'); }
+}
+
+// ── Aceptar / rechazar aviso (acreedor) ──
+let aceptarPagoPend = null;
+function abrirConfirmarAceptar(idDeuda) {
+  const d = deudasCache[idDeuda]; if (!d || !d.solicitud) return;
+  const monto = d.solicitud.tipo === 'total' ? d.restante : d.solicitud.monto;
+  aceptarPagoPend = { idSolicitud: d.solicitud.id };
+  document.getElementById('cp-desc').innerHTML = `${esc(d.deudor)} dice que te ha pagado <b>${cop(monto)}</b>${d.solicitud.tipo === 'total' ? ' (todo lo pendiente)' : ''}.<br><br>` + textoReparto(d, monto);
+  hideErr('cp-err');
+  openSheet('sh-confirm-pago');
+}
+async function doConfirmAceptarPago() {
+  hideErr('cp-err');
+  if (!aceptarPagoPend) return;
+  try {
+    const res = await api('responderSolicitud', { idSolicitud: aceptarPagoPend.idSolicitud, aceptar: true, id: session.id });
+    if (res.ok) { closeSheet('sh-confirm-pago'); aceptarPagoPend = null; toast(res.msg || 'Pago aceptado ✓', 'ok'); await cargarDeudas(); }
+    else showErr('cp-err', res.msg || 'Error');
+  } catch (e) { showErr('cp-err', 'Error de conexión'); }
+}
+async function doResponderSolicitud(idSolicitud, aceptar) {
+  try {
+    const res = await api('responderSolicitud', { idSolicitud: idSolicitud, aceptar: aceptar, id: session.id });
+    if (res.ok) { toast(res.msg || 'Hecho', 'ok'); await cargarDeudas(); }
+    else toast(res.msg || 'Error', 'error');
+  } catch (e) { toast('Error de conexión', 'error'); }
+}
+
+// ── Notas ──
+let notaActual = null;
+async function abrirNota(id) {
+  const d = deudasCache[id]; if (!d) return;
+  document.getElementById('nt-desc').textContent = d.descripcion;
+  hideErr('nt-err');
+  const textarea = document.getElementById('nt-texto'), vista = document.getElementById('nt-vista'), btn = document.getElementById('nt-btn-guardar');
+  document.getElementById('nt-titulo').textContent = 'Nota';
+  textarea.style.display = 'none'; vista.style.display = 'block'; vista.textContent = 'Cargando...'; btn.style.display = 'none';
+  openSheet('sh-nota');
+  try {
+    const res = await api('obtenerNota', { idDeuda: id, id: session.id });
+    if (!res.ok) { vista.textContent = res.msg || 'Error al cargar la nota'; return; }
+    notaActual = { id: id };
+    if (res.esCreador) {
+      textarea.style.display = 'block'; vista.style.display = 'none'; textarea.value = res.nota || ''; btn.style.display = 'flex';
+    } else {
+      document.getElementById('nt-titulo').textContent = 'Nota (solo lectura)';
+      vista.textContent = res.nota ? res.nota : 'Sin notas todavía.';
+    }
+  } catch (e) { vista.textContent = 'Error de conexión al cargar la nota.'; }
+}
+async function doGuardarNota() {
+  hideErr('nt-err');
+  try {
+    const res = await api('guardarNota', { idDeuda: notaActual.id, nota: document.getElementById('nt-texto').value, id: session.id });
+    if (res.ok) { closeSheet('sh-nota'); toast('Nota guardada ✓', 'ok'); notaActual = null; await cargarDeudas(); }
+    else showErr('nt-err', res.msg || 'Error');
+  } catch (e) { showErr('nt-err', 'Error de conexión'); }
+}
+
+// ── Archivar ──
+function pedirEliminarDeuda(id) {
+  const d = deudasCache[id]; if (!d) return;
+  pendingAccion = { idDeuda: id };
+  document.getElementById('cf-desc').innerHTML = `Vas a archivar <b>"${esc(d.descripcion)}"</b>, con <b>${cop(d.restante)}</b> todavía pendientes.<br><br>` +
+    `<span style="color:var(--red)">⚠️ Si te han pagado algo y no lo has registrado, regístralo antes: al archivar ${d.tasa > 0 ? 'los intereses dejan de correr y ' : ''}la deuda pasa al historial tal como esté.</span>`;
+  hideErr('cf-err');
+  openSheet('sh-confirm');
+}
+async function doConfirmAccion() {
+  hideErr('cf-err');
+  if (!pendingAccion) return;
+  try {
+    const res = await api('eliminarDeuda', { idDeuda: pendingAccion.idDeuda, id: session.id });
+    if (res.ok) { closeSheet('sh-confirm'); pendingAccion = null; toast('Deuda archivada', 'ok'); await cargarDeudas(); }
+    else showErr('cf-err', res.msg || 'Error');
+  } catch (e) { showErr('cf-err', 'Error de conexión'); }
+}
+
+// ══════════════════════════════════════════
+// USUARIOS
+// ══════════════════════════════════════════
+async function cargarUsuarios() {
+  try {
+    const res = await api('listarMisUsuarios', { id: session.id });
+    let html = '';
+    if (res.creador) {
+      html += `<div class="label">Te creó</div>`;
+      html += `<div class="usuario-card"><div class="avatar">${esc(res.creador.usuario[0].toUpperCase())}</div><div style="flex:1;font-size:15px;font-weight:600">${esc(res.creador.usuario)}</div></div>`;
+    }
+    html += `<div class="label" style="margin-top:6px">Tus contactos</div>`;
+    if (!res.creados.length) {
+      html += `<div class="empty"><div class="empty-icon">👤</div><div class="empty-text">Aún no tienes contactos.<br>Crea uno o agrega uno existente.</div></div>`;
+    } else {
+      html += res.creados.map(u => {
+        const uData = esc(JSON.stringify({ id: u.id, usuario: u.usuario, tipo: u.tipo, correo: u.correo || '' }));
+        return `
+        <div class="usuario-card">
+          <div class="avatar">${esc(u.usuario[0].toUpperCase())}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:15px;font-weight:600">${esc(u.usuario)} ${u.tipo === 'vinculado' ? '<span class="badge">Vinculado</span>' : ''}</div>
+            ${u.correo ? `<div style="font-size:12px;color:var(--text2);overflow:hidden;text-overflow:ellipsis">${esc(u.correo)}</div>` : ''}
+          </div>
+          <button class="btn btn-secondary btn-sm btn-icon" title="Editar" data-u="${uData}" onclick="abrirEditarUsuario(JSON.parse(this.dataset.u))">✏️</button>
+          <button class="btn btn-danger btn-sm btn-icon" title="Eliminar" data-u="${uData}" onclick="pedirEliminarUsuario(JSON.parse(this.dataset.u))">✕</button>
+        </div>`;
+      }).join('');
+    }
+    document.getElementById('lista-usuarios').innerHTML = html;
+  } catch (e) { toast('Error cargando usuarios', 'error'); }
+}
+async function doCrearUsuario() {
+  const u = document.getElementById('nu-nombre').value.trim();
+  const correo = document.getElementById('nu-correo').value.trim();
+  hideErr('nu-err');
+  if (!u) { showErr('nu-err', 'Escribe un nombre de usuario'); return; }
+  if (!correo) { showErr('nu-err', 'Escribe un correo electrónico'); return; }
+  try {
+    const res = await api('crearUsuario', { usuarioNuevo: u, correoNuevo: correo, creadorId: session.id });
+    if (res.ok) {
+      closeSheet('sh-nuevo-usuario');
+      document.getElementById('nu-nombre').value = ''; document.getElementById('nu-correo').value = '';
+      toast(res.msg || 'Usuario invitado ✓', 'ok');
+      await cargarUsuarios();
+    } else showErr('nu-err', res.msg || 'Error');
+  } catch (e) { showErr('nu-err', 'Error de conexión'); }
+}
+async function doRecuperarUsuario() {
+  const correo = document.getElementById('ru-correo').value.trim();
+  hideErr('ru-err');
+  if (!correo) { showErr('ru-err', 'Escribe el correo del usuario a recuperar'); return; }
+  try {
+    const res = await api('recuperarUsuarioEliminado', { correo: correo, id: session.id });
+    if (res.ok) { closeSheet('sh-recuperar-usuario'); document.getElementById('ru-correo').value = ''; toast(res.msg || 'Usuario recuperado ✓', 'ok'); await cargarUsuarios(); }
+    else showErr('ru-err', res.msg || 'Error');
+  } catch (e) { showErr('ru-err', 'Error de conexión'); }
+}
+async function doAgregarUsuario() {
+  const correo = document.getElementById('au-correo').value.trim();
+  hideErr('au-err');
+  if (!correo) { showErr('au-err', 'Escribe el correo del usuario'); return; }
+  try {
+    const res = await api('agregarUsuarioPorCorreo', { correo: correo, id: session.id });
+    if (res.ok) { closeSheet('sh-agregar-usuario'); document.getElementById('au-correo').value = ''; toast(res.msg || 'Usuario agregado ✓', 'ok'); await cargarUsuarios(); }
+    else showErr('au-err', res.msg || 'Error');
+  } catch (e) { showErr('au-err', 'Error de conexión'); }
+}
+async function doRecuperarPass() {
+  const correo = document.getElementById('rp-correo').value.trim();
+  hideErr('rp-err');
+  if (!correo) { showErr('rp-err', 'Escribe tu correo electrónico'); return; }
+  try {
+    const res = await api('recuperarContrasena', { correo: correo });
+    if (res.ok) { closeSheet('sh-recuperar-pass'); document.getElementById('rp-correo').value = ''; toast(res.msg || 'Contraseña enviada ✓', 'ok'); }
+    else showErr('rp-err', res.msg || 'Ese correo no existe');
+  } catch (e) { showErr('rp-err', 'Error de conexión'); }
+}
+
+let usuarioEditando = null, usuarioAEliminar = null;
+function abrirEditarUsuario(u) {
+  usuarioEditando = u;
+  document.getElementById('eu-nombre').value = u.usuario || '';
+  const euCorreo = document.getElementById('eu-correo');
+  euCorreo.value = u.correo || ''; euCorreo.style.display = u.correo ? 'block' : 'none';
+  hideErr('eu-err');
+  openSheet('sh-editar-usuario');
+}
+async function doEditarUsuario() {
+  const nombre = document.getElementById('eu-nombre').value.trim();
+  hideErr('eu-err');
+  if (!nombre) { showErr('eu-err', 'Escribe un nombre'); return; }
+  const accion = usuarioEditando.tipo === 'vinculado' ? 'editarAliasVinculo' : 'editarNombreUsuarioCreado';
+  try {
+    const res = await api(accion, { idUsuario: usuarioEditando.id, nuevoNombre: nombre, id: session.id });
+    if (res.ok) { closeSheet('sh-editar-usuario'); usuarioEditando = null; toast('Nombre actualizado ✓', 'ok'); await cargarUsuarios(); }
+    else showErr('eu-err', res.msg || 'Error');
+  } catch (e) { showErr('eu-err', 'Error de conexión'); }
+}
+function pedirEliminarUsuario(u) {
+  usuarioAEliminar = u;
+  document.getElementById('cu-desc').innerHTML = 'Se quitará a <b>' + esc(u.usuario) + '</b> de tu lista. No se borra su cuenta: podrás recuperarlo después con su correo.';
+  hideErr('cu-err');
+  openSheet('sh-confirm-usuario');
+}
+async function doConfirmEliminarUsuario() {
+  hideErr('cu-err');
+  if (!usuarioAEliminar) return;
+  const vinc = usuarioAEliminar.tipo === 'vinculado';
+  const params = vinc ? { idUsuario: usuarioAEliminar.id, id: session.id } : { idUsuario: usuarioAEliminar.id, idSolicitante: session.id };
+  try {
+    const res = await api(vinc ? 'ocultarVinculo' : 'eliminarUsuario', params);
+    if (res.ok) { closeSheet('sh-confirm-usuario'); usuarioAEliminar = null; toast('Usuario eliminado', 'ok'); await cargarUsuarios(); }
+    else showErr('cu-err', res.msg || 'Error eliminando');
+  } catch (e) { showErr('cu-err', 'Error de conexión'); }
+}
+
+// ══════════════════════════════════════════
+// CONTACTOS (omitir / recuperar)
+// ══════════════════════════════════════════
+async function abrirContactos() { nav('pg-contactos'); await cargarContactos(); }
+async function cargarContactos() {
+  try {
+    const contactos = await api('listarContactos', { id: session.id });
+    const el = document.getElementById('lista-contactos');
+    if (!contactos.length) { el.innerHTML = `<div class="empty"><div class="empty-icon">👥</div><div class="empty-text">No hay otros usuarios todavía</div></div>`; return; }
+    el.innerHTML = contactos.map(c => `
+      <div class="usuario-card">
+        <div class="avatar">${esc(c.usuario[0].toUpperCase())}</div>
+        <div style="flex:1;font-size:15px;font-weight:600">${esc(c.usuario)} ${c.omitido ? '<span class="badge">Omitido</span>' : ''}</div>
+        ${c.omitido
+          ? `<button class="btn btn-secondary btn-sm" onclick="doRecuperar('${esc(c.id)}','${esc(c.usuario)}')">Recuperar</button>`
+          : `<button class="btn btn-danger btn-sm" onclick="doOmitir('${esc(c.id)}','${esc(c.usuario)}')">Omitir</button>`}
+      </div>`).join('');
+  } catch (e) { toast('Error cargando contactos', 'error'); }
+}
+async function doOmitir(idOmitido, nombre) {
+  try {
+    const res = await api('omitirUsuario', { id: session.id, omitidoId: idOmitido });
+    if (res.ok) { toast('Has omitido a ' + nombre, 'ok'); await cargarContactos(); } else toast(res.msg || 'No se pudo omitir', 'error');
+  } catch (e) { toast('Error de conexión', 'error'); }
+}
+async function doRecuperar(idOmitido, nombre) {
+  try {
+    const res = await api('recuperarUsuario', { id: session.id, omitidoId: idOmitido });
+    if (res.ok) { toast('Has recuperado a ' + nombre, 'ok'); await cargarContactos(); } else toast(res.msg || 'No se pudo recuperar', 'error');
+  } catch (e) { toast('Error de conexión', 'error'); }
+}
+
+// ══════════════════════════════════════════
+// PERFIL
+// ══════════════════════════════════════════
+async function doChangePass() {
+  const actual = document.getElementById('p-actual').value.trim();
+  const nueva = document.getElementById('p-nueva').value.trim();
+  const conf = document.getElementById('p-confirmar').value.trim();
+  hideErr('p-err');
+  if (!actual || !nueva || !conf) { showErr('p-err', 'Rellena todos los campos'); return; }
+  if (nueva !== conf) { showErr('p-err', 'Las contraseñas no coinciden'); return; }
+  try {
+    const res = await api('cambiarContrasena', { id: session.id, actual: actual, nueva: nueva });
+    if (res.ok) { toast('Contraseña actualizada ✓', 'ok'); ['p-actual', 'p-nueva', 'p-confirmar'].forEach(id => document.getElementById(id).value = ''); }
+    else showErr('p-err', res.msg || 'Error');
+  } catch (e) { showErr('p-err', 'Error de conexión'); }
+}
+function abrirEditarMiNombre() {
+  document.getElementById('emi-nombre').value = session ? session.usuario : '';
+  hideErr('emi-err');
+  openSheet('sh-editar-mi-nombre');
+}
+async function doEditarMiNombre() {
+  const nombre = document.getElementById('emi-nombre').value.trim();
+  hideErr('emi-err');
+  if (!nombre) { showErr('emi-err', 'Escribe un nombre'); return; }
+  try {
+    const res = await api('editarMiNombre', { nuevoNombre: nombre, id: session.id });
+    if (res.ok) { session.usuario = res.usuario; document.getElementById('p-nombre').textContent = res.usuario; closeSheet('sh-editar-mi-nombre'); toast('Nombre actualizado ✓', 'ok'); }
+    else showErr('emi-err', res.msg || 'Error');
+  } catch (e) { showErr('emi-err', 'Error de conexión'); }
+}
+
+// ══════════════════════════════════════════
+// LICENCIA / PLAN
+// ══════════════════════════════════════════
+function abrirCartelLicencia() {
+  document.getElementById('lic-precio').textContent = LIC_PRECIO_TEXTO;
+  document.getElementById('lic-nota').textContent = LIC_PRECIO_NOTA;
+  const a = document.getElementById('lic-enlace');
+  if (LIC_ENLACE_PAGO) { a.href = LIC_ENLACE_PAGO; a.style.opacity = ''; a.style.pointerEvents = ''; a.textContent = 'Pagar ' + LIC_PRECIO_TEXTO + ' y activar 1 año'; }
+  else { a.removeAttribute('href'); a.style.opacity = '.5'; a.style.pointerEvents = 'none'; a.textContent = 'Enlace de pago próximamente'; }
+  document.getElementById('lic-mi-correo').textContent = session && session.correo ? '(' + session.correo + ')' : '';
+  openSheet('sh-licencia');
+}
+async function cargarPlanPerfil() {
+  const el = document.getElementById('p-plan'); if (!el || !session) return;
+  el.innerHTML = 'Cargando plan...';
+  try {
+    const p = await api('estadoPlan', { userId: session.id });
+    let html = '';
+    if (p.licenciaActiva) {
+      html = p.vitalicia
+        ? '<b style="color:var(--pri)">✓ Licencia vitalicia</b><div style="color:var(--text2);margin-top:2px">Creación de deudas ilimitada.</div>'
+        : '<b style="color:var(--pri)">✓ Premium activo</b><div style="color:var(--text2);margin-top:2px">Ilimitado hasta el ' + fmtFecha(p.licenciaHasta) + '.</div>';
+    } else if (p.plan === 'gratis_inicial') {
+      html = '<b>Plan gratuito</b><div style="color:var(--text2);margin-top:2px">Te quedan ' + p.restantes + ' de tus ' + p.limiteTotal + ' deudas de regalo.</div>';
+    } else {
+      html = '<b>Plan gratuito</b><div style="color:var(--text2);margin-top:2px">Has creado ' + p.creadasMes + '/' + p.limiteMensual + ' deudas este mes. Se renueva el día 1.</div>';
+    }
+    if (!p.licenciaActiva) html += '<button class="btn btn-gold btn-sm" style="width:100%;margin-top:10px" onclick="abrirCartelLicencia()">Hazte Premium (' + LIC_PRECIO_TEXTO + '/año)</button>';
+    el.innerHTML = html;
+  } catch (e) { el.innerHTML = ''; }
+}
+async function masterLic(accion, tipo) {
+  const inp = document.getElementById('lic-correo-input'), msg = document.getElementById('lic-master-msg');
+  const correo = (inp.value || '').trim();
+  if (!correo) { msg.style.color = 'var(--red)'; msg.textContent = 'Escribe un correo.'; return; }
+  msg.style.color = 'var(--text2)'; msg.textContent = 'Un momento...';
+  try {
+    const r = await api(accion, { id: session.id, correoCliente: correo, tipo: tipo });
+    if (r && r.ok) {
+      msg.style.color = 'var(--pri)';
+      msg.textContent = accion === 'quitarLicenciaMaster' ? 'Licencia quitada de ' + r.correo + '.' : (r.vitalicia ? 'Licencia vitalicia' : 'Licencia de 1 año') + ' activada para ' + r.correo + '.';
+      inp.value = '';
+    } else { msg.style.color = 'var(--red)'; msg.textContent = (r && r.msg) || 'No se pudo.'; }
+  } catch (e) { msg.style.color = 'var(--red)'; msg.textContent = 'Error.'; }
+}
+function masterActivarLicencia(tipo) { masterLic('activarLicenciaMaster', tipo); }
+function masterQuitarLicencia() { masterLic('quitarLicenciaMaster'); }
+</script>
+<script>(function(){function avisar(){try{if(window.top!==window)window.top.postMessage('deudaspesos-lista','*');}catch(e){}}if(document.readyState==='complete'){setTimeout(avisar,0);}else{window.addEventListener('load',avisar);}setTimeout(avisar,1500);})();</script>
+</body>
+</html>
