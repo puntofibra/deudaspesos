@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DeudasPesos</title>
+<meta name="description" content="Préstamos y deudas en pesos colombianos, con o sin interés mensual.">
+<meta name="theme-color" content="#083f32">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="DeudasPesos">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; background: #f4f1ea; overflow: hidden; }
+  body { padding-top: env(safe-area-inset-top); box-sizing: border-box; background: #083f32; }
+  #app { position: fixed; inset: env(safe-area-inset-top) 0 0 0; width: 100%; height: calc(100% - env(safe-area-inset-top)); border: 0; background: #f4f1ea; }
+  #carga { position: fixed; inset: 0; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+    background: linear-gradient(180deg, #083f32, #0a5c48); color: #fff; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; transition: opacity .35s; }
+  #carga.fuera { opacity: 0; pointer-events: none; }
+  #carga img { width: 96px; height: 96px; border-radius: 24px; animation: latir 1.2s ease-in-out infinite; }
+  #carga b { font-size: 24px; letter-spacing: -.3px; }
+  #carga span { font-size: 14px; color: #bfe3d6; }
+  @keyframes latir { 50% { transform: scale(.92); } }
+  #instalar { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 20; display: none;
+    background: #e3a008; color: #3b2a00; border: 0; border-radius: 100px; padding: 12px 20px; font: 700 15px system-ui, sans-serif;
+    box-shadow: 0 8px 24px rgba(0,0,0,.25); cursor: pointer; }
+</style>
+</head>
+<body>
+<div id="carga"><img src="icon-192.png" alt=""><b>DeudasPesos</b><span>Cargando…</span></div>
+<iframe id="app" title="DeudasPesos" allow="clipboard-write; web-share"></iframe>
+<button id="instalar">📲 Instalar app</button>
+<script>
+  // URL /exec de la implementación de Apps Script
+  var APP_URL = 'PON_AQUI_LA_URL_EXEC';
+
+  var carga = document.getElementById('carga');
+  var frame = document.getElementById('app');
+  frame.src = APP_URL;
+  function quitarCarga() { carga.classList.add('fuera'); }
+  window.addEventListener('message', function (e) { if (e.data === 'deudaspesos-lista') quitarCarga(); });
+  setTimeout(quitarCarga, 12000);
+
+  // PWA: service worker + botón de instalar
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () {});
+  var aviso = null, btn = document.getElementById('instalar');
+  window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); aviso = e; btn.style.display = 'block'; });
+  btn.addEventListener('click', function () {
+    if (!aviso) return;
+    aviso.prompt();
+    aviso.userChoice.finally(function () { aviso = null; btn.style.display = 'none'; });
+  });
+  window.addEventListener('appinstalled', function () { btn.style.display = 'none'; });
+</script>
+</body>
+</html>
