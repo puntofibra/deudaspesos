@@ -994,8 +994,9 @@ function gdPreview() {
   document.querySelectorAll('#gd-sugeridos .chip').forEach(c => c.classList.toggle('selected', parseFloat(c.textContent) === pct));
   if (!gdConInteres || !imp || pct <= 0) { box.style.display = 'none'; return; }
   const cuota = Math.round(imp * pct / 100);
-  box.innerHTML = `Cada mes cumplido sin abonar se suman <b>${cop(cuota)}</b> (${fmtPct(pct)} de ${cop(imp)}).<br>` +
-    `Si no paga nada, a los 3 meses debería <b>${cop(imp + cuota * 3)}</b>. Los pagos cubren primero los intereses y luego el capital.`;
+  box.innerHTML = `Desde el primer día se suman <b>${cop(cuota)}</b> de interés (${fmtPct(pct)} de ${cop(imp)}): aunque pague hoy, debe <b>${cop(imp + cuota)}</b>.<br>` +
+    `Cada mes cumplido sin terminar de pagar se suma otro ${fmtPct(pct)} del capital pendiente.<br>` +
+    `Si no paga nada, al cumplir 3 meses debería <b>${cop(imp + cuota * 4)}</b>. Los pagos cubren primero los intereses y luego el capital.`;
   box.style.display = 'block';
 }
 async function doCrearDeuda() {
