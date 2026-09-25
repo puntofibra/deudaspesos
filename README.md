@@ -4,7 +4,8 @@ Control de préstamos y deudas en **pesos colombianos (COP)**, con **interés me
 Web app de Google Apps Script + Google Sheets, publicada como PWA instalable en GitHub Pages.
 
 ## Cómo se calcula el interés
-- Interés simple **por mes cumplido** desde la fecha de la deuda, sobre el **capital pendiente**.
+- El interés cuenta **desde el primer día**: al crear la deuda ya se suma el X% del capital (aunque se pague ese mismo día).
+- Después, cada **mes cumplido** sin terminar de pagar se suma otro X% del **capital pendiente** (interés simple).
 - Los pagos (parciales o totales) cubren **primero los intereses** y después el capital.
 - Todo se redondea a pesos enteros y se recalcula desde la fecha y la lista de pagos.
 
